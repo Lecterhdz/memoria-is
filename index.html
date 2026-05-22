@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Memoria de Cálculo para Sistemas Intrinsic Safety (IS) según IEC 60079-25. Herramienta profesional para ingeniería EPC.">
+    <title>IS Calculator Pro | Intrinsic Safety Memory</title>
+    
+    <!-- PWA manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            min-height: 100vh;
+        }
+
+        /* ============================================
+           TEMA IRON MAN (OSCURO) - Default
+        ============================================ */
+        body.theme-ironman {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #14141f;
+            --bg-card: #1a1a2e;
+            --bg-card-hover: #20203a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6a6a7a;
+            --border: #2a2a3e;
+            --accent: #e63946;
+            --accent-gold: #ffd700;
+            --accent-blue: #00b4d8;
+            --success: #2ec4b6;
+            --warning: #ff9f1c;
+            --danger: #e63946;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --glow: 0 0 10px rgba(230, 57, 70, 0.3);
+        }
+
+        /* ============================================
+           TEMA FULLMETAL ALCHEMIST (CLARO)
+        ============================================ */
+        body.theme-fma {
+            --bg-primary: #f5f0e8;
+            --bg-secondary: #e8e0d0;
+            --bg-card: #ffffff;
+            --bg-card-hover: #faf5ec;
+            --text-primary: #2c2420;
+            --text-secondary: #5a4a3a;
+            --text-muted: #9a8a7a;
+            --border: #d4c4b0;
+            --accent: #8b3a3a;
+            --accent-gold: #c49a45;
+            --accent-blue: #4a6a7a;
+            --success: #2d6a4f;
+            --warning: #e9a23b;
+            --danger: #c92a2a;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --glow: 0 0 8px rgba(139, 58, 58, 0.2);
+        }
+
+        /* Aplicar variables */
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           MENÚ HAMBURGUESA
+        ============================================ */
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            color: white;
+            font-size: 24px;
+        }
+
+        .menu-toggle.hidden {
+            display: none;
+        }
+
+        .menu-toggle:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            backdrop-filter: blur(10px);
+            z-index: 1001;
+            transition: left 0.3s ease;
+            box-shadow: var(--shadow);
+            padding: 80px 20px 20px;
+            overflow-y: auto;
+            border-right: 1px solid var(--border);
+        }
+
+        .side-menu.open {
+            left: 0;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .menu-item:hover {
+            background: var(--bg-card);
+            transform: translateX(5px);
+        }
+
+        .menu-item i {
+            width: 25px;
+            font-size: 20px;
+            color: var(--accent);
+        }
+
+        .theme-selector {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .theme-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .theme-ironman-btn {
+            background: #1a1a2e;
+            color: #e63946;
+            border: 1px solid #e63946;
+        }
+
+        .theme-fma-btn {
+            background: #f5f0e8;
+            color: #8b3a3a;
+            border: 1px solid #c49a45;
+        }
+
+        /* ============================================
+           MAIN CONTAINER
+        ============================================ */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            border-radius: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .header .badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--accent);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Grid Layout */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--accent);
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+
+        /* Results Card */
+        .results-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 2px solid var(--accent);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .result-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 15px;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .result-value.pass {
+            color: var(--success);
+        }
+
+        .result-value.fail {
+            color: var(--danger);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .status-pass {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-fail {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Recommendation */
+        .recommendation {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            background: var(--bg-primary);
+            border-left: 4px solid var(--accent-gold);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body class="theme-ironman">
+
+    <!-- Botón Hamburguesa -->
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Overlay -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+
+    <!-- Menú Lateral -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-item" data-action="new">
+            <i class="fas fa-plus-circle"></i>
+            <span>Nuevo Cálculo</span>
+        </div>
+        <div class="menu-item" data-action="export">
+            <i class="fas fa-file-pdf"></i>
+            <span>Exportar a PDF</span>
+        </div>
+        <div class="menu-item" data-action="help">
+            <i class="fas fa-question-circle"></i>
+            <span>Ayuda IEC 60079-25</span>
+        </div>
+        
+        <div class="theme-selector">
+            <div class="menu-item" style="cursor: default; opacity: 0.7;">
+                <i class="fas fa-palette"></i>
+                <span>Temas</span>
+            </div>
+            <button class="theme-btn theme-ironman-btn" id="themeIronman">
+                <i class="fas fa-robot"></i> Iron Man (Oscuro)
+            </button>
+            <button class="theme-btn theme-fma-btn" id="themeFMA">
+                <i class="fas fa-dragon"></i> Fullmetal (Claro)
+            </button>
+        </div>
+        
+        <div style="margin-top: 40px; text-align: center; font-size: 0.75rem; color: var(--text-muted);">
+            <i class="fas fa-shield-alt"></i> IS Calculator Pro<br>
+            v1.0 | IEC 60079-25
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="container" id="reportContent">
+        <div class="header">
+            <div class="badge">
+                <i class="fas fa-bolt"></i> Intrinsic Safety
+            </div>
+            <h1>
+                <i class="fas fa-microchip"></i> Memoria de Cálculo IS
+            </h1>
+            <p style="margin-top: 12px; color: var(--text-secondary);">
+                Compatibilidad según IEC 60079-25 | Sistemas Ex ia / Ex ib
+            </p>
+        </div>
+
+        <!-- Datos Generales -->
+        <div class="grid-2col">
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-folder-open"></i>
+                    Datos del Proyecto
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Tag del Loop</label>
+                    <input type="text" id="tagLoop" placeholder="Ej: LT-1001" value="LT-1001">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-industry"></i> Área Clasificada</label>
+                    <input type="text" id="area" placeholder="Ej: Área 200 / Zona 1" value="Zona 1 - Unidad de Crudo">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-thermometer-half"></i> Temperatura Ambiente (°C)</label>
+                    <input type="number" id="tempAmbiente" value="40" step="1">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-ruler"></i> Longitud del Cable (metros)</label>
+                    <input type="number" id="longitud" value="350" step="10">
+                </div>
+            </div>
+
+            <!-- Selección de Barrera -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Barrera IS (Zener / Aisladora)
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-box"></i> Modelo de Barrera</label>
+                    <select id="barreraSelect">
+                        <option value="p+f_kfd2">Pepperl+Fuchs KFD2-STC4-Ex1</option>
+                        <option value="mtl7706">MTL7706 (Zener)</option>
+                        <option value="mtl5541">MTL5541 (Aisladora)</option>
+                        <option value="stahl_9185">R. Stahl 9185/11</option>
+                    </select>
+                </div>
+                <div id="barreraParams" style="font-size: 0.85rem; color: var(--text-secondary);">
+                    <!-- Se llena con JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2col">
+            <!-- Instrumento -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Instrumento de Campo
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-microchip"></i> Modelo de Instrumento</label>
+                    <select id="instrumentoSelect">
+                        <option value="rosemount_3051">Rosemount 3051S (Presión)</option>
+                        <option value="yokogawa_eja">Yokogawa EJX110A</option>
+                        <option value="vega_vegabar">VEGA BAR 82</option>
+                        <option value="endo_ha711">Endress+Hauser Cerabar PMP71</option>
+                    </select>
+                </div>
+                <div id="instrumentoParams" style="font-size: 0.85rem; color: var(--text-secondary);">
+                </div>
+            </div>
+
+            <!-- Cable -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-plug"></i>
+                    Cable de Instrumentación IS
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-cable-car"></i> Modelo de Cable</label>
+                    <select id="cableSelect">
+                        <option value="belden_1032A">Belden 1032A (98 pF/m, 0.56 µH/m)</option>
+                        <option value="belden_3076F">Belden 3076F (65 pF/m, 0.42 µH/m)</option>
+                        <option value="alpha_2411">Alpha 2411 (75 pF/m, 0.48 µH/m)</option>
+                        <option value="gen_is01">General Cable IS01 (110 pF/m, 0.62 µH/m)</option>
+                    </select>
+                </div>
+                <div id="cableParams" style="font-size: 0.85rem; color: var(--text-secondary);">
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultados -->
+        <div class="results-card" id="resultsCard">
+            <div class="card-title">
+                <i class="fas fa-chart-line"></i>
+                Validación IS (IEC 60079-25)
+            </div>
+            <div id="resultsContent">
+                <!-- Resultados dinámicos -->
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="calcularBtn">
+                    <i class="fas fa-calculator"></i> Calcular Compatibilidad
+                </button>
+                <button class="btn btn-secondary" id="exportPdfBtn">
+                    <i class="fas fa-file-pdf"></i> Exportar Memoria PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // BASE DE DATOS DE COMPONENTES
+        // ============================================
+        const barreras = {
+            'p+f_kfd2': { fabricante: 'Pepperl+Fuchs', modelo: 'KFD2-STC4-Ex1', Uo: 28, Io: 93, Po: 650, Co: 83, Lo: 4.2, Um: 250, tipo: 'Aisladora' },
+            'mtl7706': { fabricante: 'MTL', modelo: '7706', Uo: 28, Io: 93, Po: 650, Co: 83, Lo: 4.2, Um: 250, tipo: 'Zener' },
+            'mtl5541': { fabricante: 'MTL', modelo: '5541', Uo: 28, Io: 93, Po: 650, Co: 83, Lo: 4.2, Um: 250, tipo: 'Aisladora' },
+            'stahl_9185': { fabricante: 'R. Stahl', modelo: '9185/11', Uo: 26, Io: 90, Po: 585, Co: 85, Lo: 5.0, Um: 250, tipo: 'Aisladora' }
+        };
+
+        const instrumentos = {
+            'rosemount_3051': { fabricante: 'Rosemount', modelo: '3051S', Ui: 30, Ii: 200, Pi: 1000, Ci: 5, Li: 10, certificado: 'Ex ia IIC T4' },
+            'yokogawa_eja': { fabricante: 'Yokogawa', modelo: 'EJX110A', Ui: 30, Ii: 200, Pi: 1000, Ci: 6, Li: 12, certificado: 'Ex ia IIC T4' },
+            'vega_vegabar': { fabricante: 'VEGA', modelo: 'BAR 82', Ui: 30, Ii: 200, Pi: 1000, Ci: 4, Li: 8, certificado: 'Ex ia IIC T4' },
+            'endo_ha711': { fabricante: 'Endress+Hauser', modelo: 'Cerabar PMP71', Ui: 30, Ii: 200, Pi: 1000, Ci: 5, Li: 9, certificado: 'Ex ia IIC T4' }
+        };
+
+        const cables = {
+            'belden_1032A': { fabricante: 'Belden', modelo: '1032A', pF_m: 98, uH_m: 0.56, ohm_km: 48, tipo: 'Foil Shield' },
+            'belden_3076F': { fabricante: 'Belden', modelo: '3076F', pF_m: 65, uH_m: 0.42, ohm_km: 65, tipo: 'Braid Shield' },
+            'alpha_2411': { fabricante: 'Alpha Wire', modelo: '2411', pF_m: 75, uH_m: 0.48, ohm_km: 54, tipo: 'Foil Shield' },
+            'gen_is01': { fabricante: 'General Cable', modelo: 'IS01', pF_m: 110, uH_m: 0.62, ohm_km: 42, tipo: 'PLTC-IS' }
+        };
+
+        // Referencias DOM
+        let currentTheme = 'ironman';
+
+        // Función para actualizar parámetros mostrados
+        function updateBarreraDisplay() {
+            const key = document.getElementById('barreraSelect').value;
+            const b = barreras[key];
+            document.getElementById('barreraParams').innerHTML = `
+                <i class="fas fa-charging-station"></i> ${b.fabricante} ${b.modelo}<br>
+                Uo = ${b.Uo} V | Io = ${b.Io} mA | Po = ${b.Po} mW<br>
+                Co = ${b.Co} nF | Lo = ${b.Lo} mH | Um = ${b.Um} V
+            `;
+        }
+
+        function updateInstrumentoDisplay() {
+            const key = document.getElementById('instrumentoSelect').value;
+            const i = instrumentos[key];
+            document.getElementById('instrumentoParams').innerHTML = `
+                <i class="fas fa-certificate"></i> ${i.fabricante} ${i.modelo}<br>
+                Ui = ${i.Ui} V | Ii = ${i.Ii} mA | Pi = ${i.Pi} mW<br>
+                Ci = ${i.Ci} nF | Li = ${i.Li} µH<br>
+                ${i.certificado}
+            `;
+        }
+
+        function updateCableDisplay() {
+            const key = document.getElementById('cableSelect').value;
+            const c = cables[key];
+            document.getElementById('cableParams').innerHTML = `
+                <i class="fas fa-cable-car"></i> ${c.fabricante} ${c.modelo}<br>
+                Cap. = ${c.pF_m} pF/m | Ind. = ${c.uH_m} µH/m<br>
+                Resistencia = ${c.ohm_km} Ω/km | ${c.tipo}
+            `;
+        }
+
+        // Cálculo principal
+        function calcularIS() {
+            const tagLoop = document.getElementById('tagLoop').value;
+            const area = document.getElementById('area').value;
+            const longitud = parseFloat(document.getElementById('longitud').value);
+            const temp = parseFloat(document.getElementById('tempAmbiente').value);
+
+            const barreraKey = document.getElementById('barreraSelect').value;
+            const instrumentoKey = document.getElementById('instrumentoSelect').value;
+            const cableKey = document.getElementById('cableSelect').value;
+
+            const b = barreras[barreraKey];
+            const i = instrumentos[instrumentoKey];
+            const c = cables[cableKey];
+
+            // Cálculos de cable
+            const Cc = (c.pF_m * longitud) / 1000; // nF
+            const Lc = (c.uH_m * longitud) / 1000; // mH
+
+            // Validaciones
+            const passVoltage = b.Uo <= i.Ui;
+            const passCurrent = b.Io <= i.Ii;
+            const passPower = b.Po <= i.Pi;
+            const passCapacitance = b.Co >= (i.Ci + Cc);
+            const passInductance = b.Lo >= (i.Li/1000 + Lc); // Li en µH a mH
+
+            const overallPass = passVoltage && passCurrent && passPower && passCapacitance && passInductance;
+
+            // Longitud máxima permitida por capacitancia
+            let maxLengthCap = ((b.Co - i.Ci) * 1000) / c.pF_m;
+            maxLengthCap = Math.max(0, maxLengthCap).toFixed(0);
+            
+            // Longitud máxima por inductancia
+            let maxLengthInd = ((b.Lo - (i.Li/1000)) * 1000) / c.uH_m;
+            maxLengthInd = Math.max(0, maxLengthInd).toFixed(0);
+            
+            const maxLength = Math.min(maxLengthCap, maxLengthInd);
+
+            // Recomendación de cable alternativo si falla
+            let recomendacion = '';
+            if (!overallPass) {
+                const mejoresCables = Object.entries(cables).filter(([key, cable]) => {
+                    const testCc = (cable.pF_m * longitud) / 1000;
+                    const testLc = (cable.uH_m * longitud) / 1000;
+                    return (b.Co >= (i.Ci + testCc) && b.Lo >= (i.Li/1000 + testLc));
+                });
+                if (mejoresCables.length > 0) {
+                    recomendacion = `⚠️ Cable actual no compatible. Sugerencia: ${mejoresCables[0][1].fabricante} ${mejoresCables[0][1].modelo} (Cap: ${mejoresCables[0][1].pF_m} pF/m, Ind: ${mejoresCables[0][1].uH_m} µH/m)`;
+                } else {
+                    recomendacion = `⚠️ Ningún cable de la base de datos cumple. Reducir longitud a ${maxLength} m o cambiar barrera/instrumento.`;
+                }
+            } else {
+                recomendacion = `✅ Cable compatible. Longitud máxima teórica: ${maxLength} m (limitado por ${maxLengthCap <= maxLengthInd ? 'capacitancia' : 'inductancia'})`;
+            }
+
+            // Construir HTML de resultados
+            const resultsHTML = `
+                <div class="results-grid">
+                    <div class="result-item">
+                        <div class="result-label">Validación Voltaje (Uo ≤ Ui)</div>
+                        <div class="result-value ${passVoltage ? 'pass' : 'fail'}">${b.Uo} V ≤ ${i.Ui} V → ${passVoltage ? 'PASS' : 'FAIL'}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Validación Corriente (Io ≤ Ii)</div>
+                        <div class="result-value ${passCurrent ? 'pass' : 'fail'}">${b.Io} mA ≤ ${i.Ii} mA → ${passCurrent ? 'PASS' : 'FAIL'}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Validación Potencia (Po ≤ Pi)</div>
+                        <div class="result-value ${passPower ? 'pass' : 'fail'}">${b.Po} mW ≤ ${i.Pi} mW → ${passPower ? 'PASS' : 'FAIL'}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Capacitancia Total (Co ≥ Ci + Cc)</div>
+                        <div class="result-value ${passCapacitance ? 'pass' : 'fail'}">${b.Co} nF ≥ ${(i.Ci + Cc).toFixed(1)} nF → ${passCapacitance ? 'PASS' : 'FAIL'}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Inductancia Total (Lo ≥ Li + Lc)</div>
+                        <div class="result-value ${passInductance ? 'pass' : 'fail'}">${b.Lo} mH ≥ ${((i.Li/1000) + Lc).toFixed(3)} mH → ${passInductance ? 'PASS' : 'FAIL'}</div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <span class="status-badge ${overallPass ? 'status-pass' : 'status-fail'}">
+                        ${overallPass ? '✓ COMPATIBLE IS' : '✗ NO COMPATIBLE'}
+                    </span>
+                </div>
+                <div class="recommendation">
+                    <strong><i class="fas fa-lightbulb"></i> Recomendación:</strong><br>
+                    ${recomendacion}<br><br>
+                    <small><i class="fas fa-chart-line"></i> Longitud actual: ${longitud} m | Capacitancia cable: ${Cc.toFixed(1)} nF | Inductancia cable: ${Lc.toFixed(3)} mH</small>
+                </div>
+            `;
+
+            document.getElementById('resultsContent').innerHTML = resultsHTML;
+        }
+
+        // Exportar a PDF
+        function exportToPDF() {
+            const element = document.getElementById('reportContent');
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `Memoria_IS_${document.getElementById('tagLoop').value}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, backgroundColor: null },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Temas
+        function setTheme(theme) {
+            if (theme === 'ironman') {
+                document.body.classList.remove('theme-fma');
+                document.body.classList.add('theme-ironman');
+                localStorage.setItem('is_calculator_theme', 'ironman');
+            } else {
+                document.body.classList.remove('theme-ironman');
+                document.body.classList.add('theme-fma');
+                localStorage.setItem('is_calculator_theme', 'fma');
+            }
+        }
+
+        // Menú Hamburguesa
+        function initMenu() {
+            const menuToggle = document.getElementById('menuToggle');
+            const sideMenu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            function closeMenu() {
+                sideMenu.classList.remove('open');
+                overlay.classList.remove('active');
+                menuToggle.classList.remove('hidden');
+            }
+            
+            function openMenu() {
+                sideMenu.classList.add('open');
+                overlay.classList.add('active');
+                menuToggle.classList.add('hidden');
+            }
+            
+            menuToggle.addEventListener('click', openMenu);
+            overlay.addEventListener('click', closeMenu);
+            
+            // Cerrar al hacer clic en item del menú
+            document.querySelectorAll('.menu-item[data-action]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const action = item.dataset.action;
+                    if (action === 'new') {
+                        if(confirm('¿Reiniciar todos los valores?')) {
+                            document.getElementById('tagLoop').value = 'LT-1001';
+                            document.getElementById('longitud').value = '350';
+                            calcularIS();
+                        }
+                    } else if (action === 'export') {
+                        exportToPDF();
+                    } else if (action === 'help') {
+                        alert('Norma IEC 60079-25: Verificar que Uo ≤ Ui, Io ≤ Ii, Po ≤ Pi, Co ≥ Ci + Cc, Lo ≥ Li + Lc.\n\nLa temperatura ambiente afecta el cable, pero esta versión calcula eléctricamente.');
+                    }
+                    closeMenu();
+                });
+            });
+        }
+
+        // Eventos
+        document.getElementById('barreraSelect').addEventListener('change', () => { updateBarreraDisplay(); calcularIS(); });
+        document.getElementById('instrumentoSelect').addEventListener('change', () => { updateInstrumentoDisplay(); calcularIS(); });
+        document.getElementById('cableSelect').addEventListener('change', () => { updateCableDisplay(); calcularIS(); });
+        document.getElementById('longitud').addEventListener('input', calcularIS);
+        document.getElementById('calcularBtn').addEventListener('click', calcularIS);
+        document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+        document.getElementById('themeIronman').addEventListener('click', () => setTheme('ironman'));
+        document.getElementById('themeFMA').addEventListener('click', () => setTheme('fma'));
+
+        // Inicialización
+        function init() {
+            const savedTheme = localStorage.getItem('is_calculator_theme') || 'ironman';
+            setTheme(savedTheme);
+            updateBarreraDisplay();
+            updateInstrumentoDisplay();
+            updateCableDisplay();
+            calcularIS();
+            initMenu();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
