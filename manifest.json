@@ -1,0 +1,21 @@
+{
+  "name": "IS Calculator Pro",
+  "short_name": "IS Calc",
+  "description": "Memoria de Cálculo para Sistemas Intrinsic Safety IEC 60079-25",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1a1a2e",
+  "background_color": "#0a0a0f",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192?text=IS",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512?text=IS",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
